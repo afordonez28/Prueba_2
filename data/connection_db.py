@@ -12,6 +12,7 @@ CLEVER_DB = (
     f"{os.getenv('CLEVER_HOST')}:{os.getenv('CLEVER_PORT')}/{os.getenv('CLEVER_DATABASE')}"
 )
 
+
 engine: AsyncEngine = create_async_engine(CLEVER_DB, echo=True)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
