@@ -1,8 +1,12 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
-from data.models import User, Pet
+from data.models import Cliente, Vehiculo, ZonaParqueo, RegistroParqueo
 from data.connection_db import init_db, get_session
-from data import operations_db
+from data.operations_db import (
+    create_cliente, get_clientes,
+    create_vehiculo, get_vehiculos,
+    get_zonas_disponibles, registrar_entrada
+)
 
 app = FastAPI()
 
@@ -14,27 +18,30 @@ async def on_startup():
 def root():
     return {"message": "API funcionando correctamente"}
 
-# --- Usuarios ---
-@app.get("/users")
-async def list_users(session: AsyncSession = Depends(get_session)):
-    return await operations_db.get_users(session)
+# --- Clientes ---
+@app.post("/clientes")
+async def add_cliente(cliente: Cliente, session: AsyncSession = Depends(get_session)):
+    return await create_cliente(cliente, session)
 
-@app.get("/users/{user_id}")
-async def get_user(user_id: int, session: AsyncSession = Depends(get_session)):
-    user = await operations_db.get_user_by_id(user_id, session)
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return user
+@app.get("/clientes")
+async def list_clientes(session: AsyncSession = Depends(get_session)):
+    return await get_clientes(session)
 
-@app.post("/users")
-async def create_user(user: User, session: AsyncSession = Depends(get_session)):
-    return await operations_db.create_user(user, session)
+# --- Vehículos ---
+@app.post("/vehiculos")
+async def add_vehiculo(vehiculo: Vehiculo, session: AsyncSession = Depends(get_session)):
+    return await create_vehiculo(vehiculo, session)
 
-# --- Mascotas ---
-@app.get("/pets")
-async def list_pets(session: AsyncSession = Depends(get_session)):
-    return await operations_db.get_all_pets(session)
+@app.get("/vehiculos")
+async def list_vehiculos(session: AsyncSession = Depends(get_session)):
+    return await get_vehiculos(session)
 
-@app.post("/pets")
-async def create_pet(pet: Pet, session: AsyncSession = Depends(get_session)):
-    return await operations_db.create_pet(pet, session)
+# --- Zonas disponibles ---
+@app.get("/zonas/disponibles")
+async def zonas_disponibles(session: AsyncSession = Depends(get_session)):
+    return await get_zonas_disponibles(session)
+
+# --- Registro de entrada ---
+@app.post("/registro/entrada")
+async def registrar_vehiculo(registro: RegistroParqueo, session: AsyncSession = Depends(get_session)):
+    return await registrar_entrada(registro, session)
